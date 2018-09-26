@@ -56,7 +56,7 @@ NO_COLOR="${NO_COLOR:-}"    # true = disable color. otherwise autodetected
 
 # Setup log directory
 LOG_DIR="/tmp/logs/"
-LOG_FILE="/tmp/logs/sw_component_jboss.log"
+LOG_FILE="/tmp/logs/infra_automation.log"
 
 [[ ! -f ${LOG_FILE} ]] && mkdir -p ${LOG_DIR} && $( touch ${LOG_FILE} || $( echo "Cannot write to ${LOG_FILE}" >&2; exit 1 ) )
 
@@ -130,7 +130,7 @@ function ctrl_c() {
     echo "** Trapped CTRL-C"
 }
 # trap script EXIT and call cleanup_before_exit()
-trap cleanup EXIT
+# trap cleanup EXIT
 
 
 # ====================================================================================
@@ -138,30 +138,103 @@ trap cleanup EXIT
 # ====================================================================================
 
 # ------------------------------------------------------------------------------------
+# System functions
+
+function yesno {
+    while true; do
+        read -p "Continue? [Yes/No]: " yn
+        case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer [Y]es or [N]o.";;
+        esac
+    done
+}
+
+function fail {
+  echo $1 >&2
+  exit 1
+}
+
+function retry {
+  local n=1
+  local max=3
+  local delay=10
+  while true; do
+    "$@" && break || {
+      if [[ $n -lt $max ]]; then
+        ((n++))
+        critical "Failed to restart NGINX! Attempt $n/$max:"
+        sleep $delay;
+      else
+        emergency "NGINX restart failed after $n attempts."
+      fi
+    }
+  done
+}
+
+
+# ------------------------------------------------------------------------------------
 # Packer section
 
+PACKER_BASE_DIR="${HOME}/dev/sandbox/infra_automation/packer"
+TERRAFORM_BASE_DIR="${HOME}/dev/sandbox/infra_automation/terraform/gcp_tf_test_deploy"
+GCP_CRED_FILE="${HOME}/.gcp/adept-cascade-216916-a0765ecc09b2.json"
+PROJECT_ID="adept-cascade-216916"
+IMAGE_NAME="sergey-test-$(date +%s)"
+
 function packer_validate(){
-
-    PACKER_BASE_DIR="${HOME}/dev/sandbox/infra_automation/packer"
-    GCP_CRED_FILE="${HOME}/.gcp/adept-cascade-216916-a0765ecc09b2.json"
-    PROJECT_ID="adept-cascade-216916"
-
-
-    notice "Running packer validation..."
+    notice "Running Packer validation..."
+    PACKER_LOG=1 \
     $PACKER_BASE_DIR/packer validate \
     -var "region=us-east1" \
-    -var "source_image_family=centos-cloud/centos-7-v20180911" \
+    -var "source_image=centos-7-v20180911" \
+    -var "image_name=$IMAGE_NAME" \
     -var "machine_type=f1-micro" \
     -var "zone=us-east1-b" \
     -var "service_account_json=$GCP_CRED_FILE" \
     -var "project_id=$PROJECT_ID" \
-    $PACKER_BASE_DIR/templates/pckr_tmpl_gcp_centos_nginx.json
+    $PACKER_BASE_DIR/templates/pckr_tmpl_gcp_centos_nginx.json  \
+    | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to validate Packer file!"
+    notice "Packer validation passed successfully."
 }
 
 function packer_build() {
-    pass
+    notice "Running Packer build..."
+    PACKER_LOG=1 \
+    $PACKER_BASE_DIR/packer build \
+    -var "region=us-east1" \
+    -var "source_image=centos-7-v20180911" \
+    -var "image_name=$IMAGE_NAME" \
+    -var "machine_type=f1-micro" \
+    -var "zone=us-east1-b" \
+    -var "service_account_json=$GCP_CRED_FILE" \
+    -var "project_id=$PROJECT_ID" \
+    $PACKER_BASE_DIR/templates/pckr_tmpl_gcp_centos_nginx.json  \
+    | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to build with Packer!"
+    notice "Packer build passed successfully."
 }
 
+function terraform_init() {
+    info "Starting Terraform initialization..."
+    cd $TERRAFORM_BASE_DIR
+    terraform init -var "image_name=$IMAGE_NAME" | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to initialize Terraform!"
+    notice "Terraform initialization passed successfully."
+}
+
+function terraform_plan() {
+    info "Starting Terraform planning..."
+    cd $TERRAFORM_BASE_DIR
+    terraform plan -var "image_name=$IMAGE_NAME" | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to plan Terraform!"
+    notice "Terraform planning passed successfully."
+}
+
+function terraform_apply() {
+    info "Starting Terraform application..."
+    cd $TERRAFORM_BASE_DIR
+    terraform apply -var "image_name=$IMAGE_NAME" -auto-approve | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to apply Terraform!"
+    notice "Terraform application passed successfully."
+}
 
 # ------------------------------------------------------------------------------------
 # Teardown section
@@ -175,19 +248,20 @@ function cleanup(){
 # ------------------------------------------------------------------------------------
 # Main function
 
-
-
 function main(){
     echo | tee -a ${LOG_FILE}
     info "=====   Starting script < ${__base} > execution...   ====="
     sysinfo 2
 
     packer_validate
-
-    
-
-
-
+    yesno
+    packer_build
+    yesno
+    terraform_init
+    yesno
+    terraform_plan
+    yesno
+    terraform_apply
 
     # system cleanup
     # cleanup
