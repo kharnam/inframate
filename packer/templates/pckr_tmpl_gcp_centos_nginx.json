@@ -1,0 +1,32 @@
+{
+    "builders": [
+        {
+            "type": "googlecompute",
+            "project_id": "{{user `project_id`}}",
+            "machine_type": "{{user `machine_type`}}",
+            "source_image_family": "{{user `source_image_family`}}",
+            "region": "{{user `region`}}",
+            "zone": "{{user `zone`}}",
+            "image_description": "Test CentOS 7 with NGINX Machine Image",
+            "image_name": "sergey-test-{{timestamp}}",
+            "disk_size": 10,
+            "disk_type": "pd-ssd",
+            "ssh_username": "root",
+            "account_file": "{{ user `service_account_json`}}"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "sleep 10",
+                "uname -a",
+                "uptime"
+            ]
+        },
+        {
+            "type": "ansible",
+            "playbook_file": "./playbook.yml"
+        }
+    ]
+}

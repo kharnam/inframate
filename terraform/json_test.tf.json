@@ -1,0 +1,126 @@
+{
+  "resource": {
+    "google_compute_instance": {
+      "tf_test_gcp_web": {
+        "kind": "compute#instance",
+        "name": "tf_test_gcp_web",
+        "zone": "projects/adept-cascade-216916/zones/us-east1-b",
+        "machineType": "projects/adept-cascade-216916/zones/us-east1-b/machineTypes/f1-micro",
+        "metadata": {
+          "kind": "compute#metadata",
+          "items": []
+        },
+        "tags": {
+          "items": [
+            "web-srv",
+            "http-server",
+            "https-server"
+          ]
+        },
+        "disks": [
+          {
+            "kind": "compute#attachedDisk",
+            "type": "PERSISTENT",
+            "boot": true,
+            "mode": "READ_WRITE",
+            "autoDelete": true,
+            "deviceName": "tf_test_gcp_web",
+            "initializeParams": {
+              "sourceImage": "projects/centos-cloud/global/images/centos-7-v20180911",
+              "diskType": "projects/adept-cascade-216916/zones/us-east1-b/diskTypes/pd-standard",
+              "diskSizeGb": "10"
+            },
+            "diskEncryptionKey": {}
+          }
+        ],
+        "canIpForward": false,
+        "networkInterfaces": [
+          {
+            "kind": "compute#networkInterface",
+            "subnetwork": "projects/adept-cascade-216916/regions/us-east1/subnetworks/default",
+            "accessConfigs": [
+              {
+                "kind": "compute#accessConfig",
+                "name": "External NAT",
+                "type": "ONE_TO_ONE_NAT",
+                "networkTier": "PREMIUM"
+              }
+            ],
+            "aliasIpRanges": []
+          }
+        ],
+        "description": "",
+        "labels": {},
+        "scheduling": {
+          "preemptible": false,
+          "onHostMaintenance": "MIGRATE",
+          "automaticRestart": true,
+          "nodeAffinities": []
+        },
+        "deletionProtection": false,
+        "serviceAccounts": [
+          {
+            "email": "95294111504-compute@developer.gserviceaccount.com",
+            "scopes": [
+              "https://www.googleapis.com/auth/devstorage.read_only",
+              "https://www.googleapis.com/auth/logging.write",
+              "https://www.googleapis.com/auth/monitoring.write",
+              "https://www.googleapis.com/auth/servicecontrol",
+              "https://www.googleapis.com/auth/service.management.readonly",
+              "https://www.googleapis.com/auth/trace.append"
+            ]
+          }
+        ]
+      }
+    }
+  },
+
+
+  "resource": {
+    "google_compute_firewall": {
+      "default-allow-http": {
+        "name": "default-allow-http",
+        "kind": "compute#firewall",
+        "sourceRanges": [
+          "0.0.0.0/0"
+        ],
+        "network": "projects/adept-cascade-216916/global/networks/default",
+        "targetTags": [
+          "http-server"
+        ],
+        "allowed": [
+          {
+            "IPProtocol": "tcp",
+            "ports": [
+              "80"
+            ]
+          }
+        ]
+      }
+    }
+  },
+
+  "resource": {
+    "google_compute_firewall": {
+      "default-allow-https": {
+        "name": "default-allow-https",
+        "kind": "compute#firewall",
+        "sourceRanges": [
+          "0.0.0.0/0"
+        ],
+        "network": "projects/adept-cascade-216916/global/networks/default",
+        "targetTags": [
+          "https-server"
+        ],
+        "allowed": [
+          {
+            "IPProtocol": "tcp",
+            "ports": [
+              "443"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

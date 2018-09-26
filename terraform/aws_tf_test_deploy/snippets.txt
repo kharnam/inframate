@@ -1,0 +1,10 @@
+
+// AWS Provider
+provider "aws" {
+    shared_credentials_file = "${var.aws_cred_file}"
+}
+
+// Variables
+variable "aws_cred_file" {
+  default = "~/.aws/credentials"
+}
