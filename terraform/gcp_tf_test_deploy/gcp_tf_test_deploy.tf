@@ -7,6 +7,10 @@ resource "google_compute_instance_template" "compute_instance" {
   machine_type   = "${var.machine_type}"
   region         = "${var.region}"
 
+  depends_on = [
+    "google_compute_subnetwork.subnetwork"
+  ]
+
   // boot disk from img
   disk {
     source_image = "https://www.googleapis.com/compute/v1/projects/adept-cascade-216916/global/images/${var.image_name}"

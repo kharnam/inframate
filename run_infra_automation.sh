@@ -313,7 +313,7 @@ function terraform_apply() {
     terraform apply -input=false -auto-approve -var "image_name=$IMAGE_NAME" -auto-approve \
     | tee -a ${LOG_FILE} 2>&1 > /dev/null || RC=1
     if [[ "$RC" -eq 1 ]]; then
-        emergency "Terraform failed to apply the plan!" 
+        critical "Terraform failed to apply the plan!" 
         rollback
     fi
     notice "Terraform successfully applied the plan."
