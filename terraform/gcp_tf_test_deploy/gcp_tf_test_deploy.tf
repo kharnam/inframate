@@ -10,7 +10,7 @@ resource "google_compute_instance_template" "compute_instance" {
 
   // boot disk from img
   disk {
-    source_image = "${var.image_name}"
+    source_image = "https://www.googleapis.com/compute/v1/projects/adept-cascade-216916/global/images/${var.image_name}"
     auto_delete  = true
     boot         = true
   }

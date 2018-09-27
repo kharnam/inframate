@@ -132,6 +132,35 @@ function ctrl_c() {
 # trap script EXIT and call cleanup_before_exit()
 # trap cleanup EXIT
 
+# ------------------------------------------------------------------------------------
+# Arguments parsing
+
+function show_help(){
+    echo
+    info "Usage: ./run_infra_automation.sh [-h help] [-v verbose] [-y auto-approve]"
+    echo
+}
+
+OPTIND=1
+VERBOSE=0
+YES=0
+while getopts "hvy" opt; do
+    case "$opt" in
+        h)
+            show_help
+            exit 0
+            ;;
+        v)  
+            VERBOSE=1
+            ;;
+        y)
+            YES=1
+            ::
+    esac
+done
+shift $((OPTIND-1))
+[ "${1:-}" = "--" ] && shift
+
 
 # ====================================================================================
 # Core functionality
@@ -141,14 +170,20 @@ function ctrl_c() {
 # System functions
 
 function yesno {
+    echo
     while true; do
-        read -p "Continue? [Yes/No]: " yn
+        if [[ "$YES" -eq 1 ]]; then 
+            notice "Proceeding in auto-approve mode..."
+            break
+        fi
+        read -p "Continue? [Y]es/[N]o: " yn
         case $yn in
             [Yy]* ) break;;
             [Nn]* ) exit;;
             * ) echo "Please answer [Y]es or [N]o.";;
         esac
     done
+    echo
 }
 
 function fail {
@@ -178,88 +213,143 @@ function retry {
 # Packer section
 
 PACKER_BASE_DIR="${HOME}/dev/sandbox/infra_automation/packer"
+PACKER_TMPLT_FILE="/templates/pckr_tmpl_gcp_centos_nginx.json"
 TERRAFORM_BASE_DIR="${HOME}/dev/sandbox/infra_automation/terraform/gcp_tf_test_deploy"
 GCP_CRED_FILE="${HOME}/.gcp/adept-cascade-216916-a0765ecc09b2.json"
 PROJECT_ID="adept-cascade-216916"
-IMAGE_NAME="sergey-test-$(date +%s)"
+IMAGE_NAME="sergey-test-$(date +%Y%m%d%H%M)"
 
 function packer_validate(){
-    notice "Running Packer validation..."
-    PACKER_LOG=1 \
-    $PACKER_BASE_DIR/packer validate \
-    -var "region=us-east1" \
-    -var "source_image=centos-7-v20180911" \
-    -var "image_name=$IMAGE_NAME" \
-    -var "machine_type=f1-micro" \
-    -var "zone=us-east1-b" \
-    -var "service_account_json=$GCP_CRED_FILE" \
-    -var "project_id=$PROJECT_ID" \
-    $PACKER_BASE_DIR/templates/pckr_tmpl_gcp_centos_nginx.json  \
-    | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to validate Packer file!"
+    info "Running Packer validation..."
+    if [[ "$VERBOSE" -eq 1 ]]; then
+        PACKER_LOG=1 $PACKER_BASE_DIR/packer validate \
+        -var "region=us-east1" \
+        -var "source_image=centos-7-v20180911" \
+        -var "image_name=$IMAGE_NAME" \
+        -var "machine_type=f1-micro" \
+        -var "zone=us-east1-b" \
+        -var "service_account_json=$GCP_CRED_FILE" \
+        -var "project_id=$PROJECT_ID" \
+        $PACKER_BASE_DIR/templates/pckr_tmpl_gcp_centos_nginx.json  \
+        | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to validate Packer file!"
+    else
+        $PACKER_BASE_DIR/packer validate \
+        -var "region=us-east1" \
+        -var "source_image=centos-7-v20180911" \
+        -var "image_name=$IMAGE_NAME" \
+        -var "machine_type=f1-micro" \
+        -var "zone=us-east1-b" \
+        -var "service_account_json=$GCP_CRED_FILE" \
+        -var "project_id=$PROJECT_ID" \
+        $PACKER_BASE_DIR$PACKER_TMPLT_FILE  \
+        | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to validate Packer file < $PACKER_BASE_DIR$PACKER_TMPLT_FILE >!"
+    fi
     notice "Packer validation passed successfully."
 }
 
 function packer_build() {
-    notice "Running Packer build..."
-    PACKER_LOG=1 \
-    $PACKER_BASE_DIR/packer build \
-    -var "region=us-east1" \
-    -var "source_image=centos-7-v20180911" \
-    -var "image_name=$IMAGE_NAME" \
-    -var "machine_type=f1-micro" \
-    -var "zone=us-east1-b" \
-    -var "service_account_json=$GCP_CRED_FILE" \
-    -var "project_id=$PROJECT_ID" \
-    $PACKER_BASE_DIR/templates/pckr_tmpl_gcp_centos_nginx.json  \
-    | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to build with Packer!"
+    info "Running Packer build..."
+    if [[ "$VERBOSE" -eq 1 ]]; then
+        PACKER_LOG=1 $PACKER_BASE_DIR/packer build \
+        -var "region=us-east1" \
+        -var "source_image=centos-7-v20180911" \
+        -var "image_name=$IMAGE_NAME" \
+        -var "machine_type=f1-micro" \
+        -var "zone=us-east1-b" \
+        -var "service_account_json=$GCP_CRED_FILE" \
+        -var "project_id=$PROJECT_ID" \
+        $PACKER_BASE_DIR/templates/pckr_tmpl_gcp_centos_nginx.json  \
+        | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to build image < $IMAGE_NAME > with Packer!"
+    else
+        $PACKER_BASE_DIR/packer build \
+        -var "region=us-east1" \
+        -var "source_image=centos-7-v20180911" \
+        -var "image_name=$IMAGE_NAME" \
+        -var "machine_type=f1-micro" \
+        -var "zone=us-east1-b" \
+        -var "service_account_json=$GCP_CRED_FILE" \
+        -var "project_id=$PROJECT_ID" \
+        $PACKER_BASE_DIR/templates/pckr_tmpl_gcp_centos_nginx.json  \
+        | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to build image < $IMAGE_NAME > with Packer!"
+    fi
     notice "Packer build passed successfully."
 }
+
+function packer_rollback(){
+    critical "Starting Packer rollback procedure..."
+    gcloud -q compute images delete $IMAGE_NAME | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to build with Packer!"
+    critical "Packer successfully removed created images."
+}
+
+
+# ------------------------------------------------------------------------------------
+# Teardown section
 
 function terraform_init() {
     info "Starting Terraform initialization..."
     cd $TERRAFORM_BASE_DIR
-    terraform init -var "image_name=$IMAGE_NAME" | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to initialize Terraform!"
+    terraform init -input=false -var "image_name=$IMAGE_NAME" | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to initialize Terraform!"
     notice "Terraform initialization passed successfully."
 }
 
 function terraform_plan() {
     info "Starting Terraform planning..."
     cd $TERRAFORM_BASE_DIR
-    terraform plan -var "image_name=$IMAGE_NAME" | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to plan Terraform!"
+    terraform plan -input=false -var "image_name=$IMAGE_NAME" | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Terraform failed to plan!"
     notice "Terraform planning passed successfully."
+}
+
+function terraform_rollback(){
+    critical "Starting Terraform rollback procedure..."
+    cd $TERRAFORM_BASE_DIR
+    terraform destroy -auto-approve | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Terraform failed to remove infrastructure!"
+    critical "Terraform successfully removed the infrastructure."
 }
 
 function terraform_apply() {
     info "Starting Terraform application..."
     cd $TERRAFORM_BASE_DIR
-    terraform apply -var "image_name=$IMAGE_NAME" -auto-approve | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to apply Terraform!"
-    notice "Terraform application passed successfully."
+    terraform apply -input=false -auto-approve -var "image_name=$IMAGE_NAME" -auto-approve \
+    | tee -a ${LOG_FILE} 2>&1 > /dev/null || \
+    critical "Terraform failed to apply the plan!"  #; rollback
+    notice "Terraform successfully applied the plan."
 }
 
 # ------------------------------------------------------------------------------------
-# Teardown section
+# Cleanup section
 
 function cleanup(){
 	echo | tee -a ${LOG_FILE} 2>&1
     info "=====>>  Starting clean up procedure...  <<====="
 }
 
+function rollback(){
+    critical "Starting total rollback procedure..."
+    terraform_rollback
+    packer_rollback
+    emergency "Rollback procedure completed!"
+}
 
 # ------------------------------------------------------------------------------------
 # Main function
 
 function main(){
-    echo | tee -a ${LOG_FILE}
+    echo -e "\n\n\n\n" | tee -a ${LOG_FILE}
+    echo -e "====================================================================================================\n\n" | tee -a ${LOG_FILE}
     info "=====   Starting script < ${__base} > execution...   ====="
     sysinfo 2
 
     packer_validate
+    notice "Proceeding to Packer build stage..."
     yesno
     packer_build
+    notice "Proceeding to Terraform initialization stage..."
     yesno
     terraform_init
+    notice "Proceeding to Terraform plan stage..."
     yesno
-    terraform_plan
+    terraform_plan  
+    notice "Proceeding to Terraform apply stage..."
     yesno
     terraform_apply
 
