@@ -155,7 +155,7 @@ while getopts "hvy" opt; do
             ;;
         y)
             YES=1
-            ::
+            ;;
     esac
 done
 shift $((OPTIND-1))
@@ -212,9 +212,9 @@ function retry {
 # ------------------------------------------------------------------------------------
 # Packer section
 
-PACKER_BASE_DIR="${HOME}/dev/sandbox/infra_automation/packer"
+PACKER_BASE_DIR="${HOME}/dev/projects/infra_automation/packer"
 PACKER_TMPLT_FILE="/templates/pckr_tmpl_gcp_centos_nginx.json"
-TERRAFORM_BASE_DIR="${HOME}/dev/sandbox/infra_automation/terraform/gcp_tf_test_deploy"
+TERRAFORM_BASE_DIR="${HOME}/dev/projects/infra_automation/terraform/gcp_tf_test_deploy"
 GCP_CRED_FILE="${HOME}/.gcp/adept-cascade-216916-a0765ecc09b2.json"
 PROJECT_ID="adept-cascade-216916"
 IMAGE_NAME="sergey-test-$(date +%Y%m%d%H%M)"
@@ -307,11 +307,15 @@ function terraform_rollback(){
 }
 
 function terraform_apply() {
+    RC=0
     info "Starting Terraform application..."
     cd $TERRAFORM_BASE_DIR
     terraform apply -input=false -auto-approve -var "image_name=$IMAGE_NAME" -auto-approve \
-    | tee -a ${LOG_FILE} 2>&1 > /dev/null || \
-    critical "Terraform failed to apply the plan!"  #; rollback
+    | tee -a ${LOG_FILE} 2>&1 > /dev/null || RC=1
+    if [[ "$RC" -eq 1 ]]; then
+        critical "Terraform failed to apply the plan!" 
+        rollback
+    fi
     notice "Terraform successfully applied the plan."
 }
 

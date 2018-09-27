@@ -18,10 +18,12 @@ resource "google_compute_firewall" "fw_allow_admin" {
 
   allow {
     protocol = "tcp"
-
     ports = [
       22,
     ]
+  }
+  allow {
+    protocol = "icmp"
   }
 
   source_ranges = [
@@ -35,10 +37,12 @@ resource "google_compute_firewall" "servers" {
 
   allow {
     protocol = "tcp"
-
     ports = [
-      8080,
+      80,
     ]
+  }
+  allow {
+    protocol = "icmp"
   }
 
   source_ranges = [

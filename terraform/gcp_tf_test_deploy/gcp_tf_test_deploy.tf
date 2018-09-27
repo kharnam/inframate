@@ -1,5 +1,4 @@
 // The below code will create XXXXXXX
-
 // This part is implemented using native Terraform resources (not modules)
 resource "google_compute_instance_template" "compute_instance" {
   name_prefix    = "tf-test-instance-"
@@ -16,7 +15,7 @@ resource "google_compute_instance_template" "compute_instance" {
   }
 
   network_interface {
-    network = "default"
+    network = "${var.name}"
     access_config {} // Ephimeral IP
   }
 
@@ -30,8 +29,6 @@ resource "google_compute_instance_template" "compute_instance" {
     service     = "web-srv"
     environment = "sandbox"
   }
-
-  metadata_startup_script = "echo 'This is a test...' > /test.txt"
 }
 
 resource "google_compute_target_pool" "target_pool" {

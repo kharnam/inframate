@@ -6,10 +6,6 @@ provider "google" {
   credentials = "${var.cred_file}"
 }
 
-provider "template" {
-  version = "1.0.0"
-}
-
 terraform {
   required_version = "0.11.8"
 }
