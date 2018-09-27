@@ -1,0 +1,8 @@
+- name: setup webserver
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - nginx
+    - ntp

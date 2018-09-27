@@ -15,7 +15,8 @@ resource "google_compute_instance_template" "compute_instance" {
   }
 
   network_interface {
-    network = "${var.name}"
+    # network = "https://www.googleapis.com/compute/v1/projects/adept-cascade-216916/global/networks/${var.name}"
+    subnetwork = "https://www.googleapis.com/compute/v1/projects/adept-cascade-216916/regions/us-east1/subnetworks/${var.name}"
     access_config {} // Ephimeral IP
   }
 

@@ -1,0 +1,24 @@
+---
+# file: roles/nginx/tasks/main.yml
+- name: install Nginx
+  yum:
+    name: nginx
+  notify:
+    - reload nginx
+  tags: nginx
+
+- name: Verify nginx is started and enabled to start at boot.
+  service: name=nginx state=started enabled=yes
+  tags: nginx
+
+- name: yum update
+  yum:
+    name: '*'
+    state: latest
+  tags: nginx
+
+- name: enable Nginx
+  systemd:
+    name: nginx
+    enabled: yes
+  tags: nginx
