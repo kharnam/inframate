@@ -283,7 +283,7 @@ function packer_rollback(){
 
 
 # ------------------------------------------------------------------------------------
-# Teardown section
+# Terraform section
 
 function terraform_init() {
     info "Starting Terraform initialization..."
@@ -319,8 +319,45 @@ function terraform_apply() {
     notice "Terraform successfully applied the plan."
 }
 
+
 # ------------------------------------------------------------------------------------
-# Cleanup section
+# General section
+
+function wait_resource(){
+    local rc=1
+    local count=1
+    local count_max=5
+    local delay=30
+    local cmd="ping -q -t1 -c1 \"${EXT_IP}\""
+
+    # while [[ "${rc}" -ne 0 ]] && [[ "${count}" -le "${count_max}" ]]; do
+    until $(curl --output /dev/null --silent --head --fail http://${EXT_IP}:80); do
+        notice "Resource is unreachable. Sleeping ${delay} seconds..."; sleep ${delay}
+        notice "Trying to reach out the resource. Attempt "${count}"/"${count_max}"..."
+        if [[ ${count} -eq ${count_max} ]]; then
+            critical "We've ecxeeded maximum of retry attempts!"
+            emergency "Resource is still unreachable. Exiting!"
+        fi
+        get_external_ip
+        count=$((count+1))
+    done
+    info "Access your web resource on -->  http://${EXT_IP}:80"
+}
+
+function get_external_ip(){
+    notice "Getting the external IP address..."
+    EXT_IP=$(/Users/kharnam/Downloads/google-cloud-sdk/bin/gcloud \
+    compute instances list --format="value(networkInterfaces[0].accessConfigs[0].natIP)" \
+    --filter="name~'instance-group-manager.*'")
+}
+
+function open_chrome(){
+    local cmd="/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome http://${EXT_IP}:80 --kiosk"
+    eval $cmd | tee -a ${LOG_FILE} 2>&1 > /dev/null || emergency "Failed to open Chrome!"
+}
+
+# ------------------------------------------------------------------------------------
+# Teardown section
 
 function cleanup(){
 	echo | tee -a ${LOG_FILE} 2>&1
@@ -356,6 +393,12 @@ function main(){
     notice "Proceeding to Terraform apply stage..."
     yesno
     terraform_apply
+
+    get_external_ip
+    wait_resource
+    notice "Would you like to open URL in browser?"
+    yesno
+    open_chrome
 
     # system cleanup
     # cleanup

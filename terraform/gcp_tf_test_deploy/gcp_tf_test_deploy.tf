@@ -63,7 +63,3 @@ resource "google_compute_autoscaler" "autoscaler" {
     }
   }
 }
-
-output "ip" {
-  value = "${google_compute_instance_template.compute_instance.network_interface.0.address}"
-}
