@@ -1,6 +1,6 @@
 """This file contains supporting variables for 'run_inframate.py'
 """
-
+import datetime
 import os
 import re
 import shlex
@@ -20,7 +20,7 @@ class Packer(object):
     gcp_data = {
         'gcp_cred_file': "{}/.gcp/adept-cascade-216916-a0765ecc09b2.json".format(home),
         'project_id': "adept-cascade-216916",
-        'image_name': "sergey-test-$(date' '+%Y%m%d%H%M)",
+        'image_name': "sergey-test-{}".format(datetime.datetime.now().strftime('%Y%m%d%H%M')),
         'region': "us-east1",
         'zone': "us-east1-b",
         'machine_type': "f1-micro",
@@ -45,4 +45,4 @@ class Terraform(object):
     """Class to contain Terraform related dependencies
     """
 
-    terraform_base_dir = '{}/dev/projects/inframate/terraform/gcp_tf_test_deploy".format(home)'.format(home)
+    terraform_base_dir = '{}/dev/projects/inframate/terraform/gcp_tf_test_deploy'.format(home)

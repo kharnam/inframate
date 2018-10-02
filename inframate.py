@@ -166,7 +166,7 @@ def packer_handler(action):
 
 
 def terraform_init(trfrm):
-    pass
+    return_code, stdout, stderr = trfrm.init()
 
 
 def terraform_plan(trfrm):
@@ -189,9 +189,9 @@ def terraform_handler(action):
     """
     trfrm = Terraform(working_dir=terra.terraform_base_dir)
     terraform_init(trfrm)
-    terraform_plan(trfrm)
-    terraform_apply(trfrm)
-    terraform_destroy(trfrm)
+    # terraform_plan(trfrm)
+    # terraform_apply(trfrm)
+    # terraform_destroy(trfrm)
 
 
 # ---------------------
@@ -205,7 +205,8 @@ def main(arg):
     :return:
     """
     packer_handler(action=None)
-    print(arg)
+    # terraform_handler(action=None)
+    # print(arg)
 
 
 # Execution
