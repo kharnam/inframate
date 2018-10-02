@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Created by Sergey Kharnam
+
 # ------------------------------------------------------------------------------------
 # General runtime setup
 
