@@ -1,4 +1,3 @@
-// The below code will create XXXXXXX
 // This part is implemented using native Terraform resources (not modules)
 resource "google_compute_instance_template" "compute_instance" {
   name_prefix    = "tf-test-instance-"

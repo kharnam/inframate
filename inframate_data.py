@@ -1,4 +1,4 @@
-"""This file contains supporting variables for 'run_inframate.py'
+"""This file contains supporting variables for 'inframate.py'
 """
 import datetime
 import os

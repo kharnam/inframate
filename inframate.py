@@ -140,6 +140,10 @@ def packer_build():
         pass
 
 
+def get_packer_images():
+    cmd = "gcloud compute images list --filter='sergey' --format=json"
+
+
 # TODO: implement packer_destroy()
 def packer_destroy():
     """
@@ -164,19 +168,22 @@ def packer_handler(action):
 # ---------------------
 # Terraform
 
-
+# TODO: terraform_init
 def terraform_init(trfrm):
     return_code, stdout, stderr = trfrm.init()
 
 
+# TODO: terraform_plan
 def terraform_plan(trfrm):
     pass
 
 
+# TODO: terraform_apply
 def terraform_apply(trfrm):
     pass
 
 
+# TODO: terraform_destroy
 def terraform_destroy(trfrm):
     pass
 
@@ -204,9 +211,9 @@ def main(arg):
     :param arg: user input arguments
     :return:
     """
-    packer_handler(action=None)
-    # terraform_handler(action=None)
-    # print(arg)
+    # packer_handler(action=None)
+    terraform_handler(action=None)
+    print(arg)
 
 
 # Execution

@@ -139,7 +139,7 @@ function ctrl_c() {
 
 function show_help(){
     echo
-    info "Usage: ./run_inframate.sh [-h help] [-v verbose] [-y auto-approve]"
+    echo "Usage: ./inframate.sh [-h help] [-v verbose] [-y auto-approve]"
     echo
 }
 
