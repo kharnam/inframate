@@ -58,7 +58,7 @@ NO_COLOR="${NO_COLOR:-}"    # true = disable color. otherwise autodetected
 
 # Setup log directory
 LOG_DIR="/tmp/logs/"
-LOG_FILE="/tmp/logs/infra_automation.log"
+LOG_FILE="/tmp/logs/inframate.log"
 
 [[ ! -f ${LOG_FILE} ]] && mkdir -p ${LOG_DIR} && $( touch ${LOG_FILE} || $( echo "Cannot write to ${LOG_FILE}" >&2; exit 1 ) )
 
@@ -139,7 +139,7 @@ function ctrl_c() {
 
 function show_help(){
     echo
-    info "Usage: ./run_infra_automation.sh [-h help] [-v verbose] [-y auto-approve]"
+    info "Usage: ./run_inframate.sh [-h help] [-v verbose] [-y auto-approve]"
     echo
 }
 
@@ -214,9 +214,9 @@ function retry {
 # ------------------------------------------------------------------------------------
 # Packer section
 
-PACKER_BASE_DIR="${HOME}/dev/projects/infra_automation/packer"
+PACKER_BASE_DIR="${HOME}/dev/projects/inframate/packer"
 PACKER_TMPLT_FILE="/templates/pckr_tmpl_gcp_centos_nginx.json"
-TERRAFORM_BASE_DIR="${HOME}/dev/projects/infra_automation/terraform/gcp_tf_test_deploy"
+TERRAFORM_BASE_DIR="${HOME}/dev/projects/inframate/terraform/gcp_tf_test_deploy"
 GCP_CRED_FILE="${HOME}/.gcp/adept-cascade-216916-a0765ecc09b2.json"
 PROJECT_ID="adept-cascade-216916"
 IMAGE_NAME="sergey-test-$(date +%Y%m%d%H%M)"

@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
+
 """
 Usage:
-    run_infra_automation.py [-h] [-y] [-v | -q ] [-m <all> | <packer> | \
+    inframate.py [-h] [-y] [-v | -q ] [-m <all> | <packer> | \
 <terraform> ] [ -a <plan> | <apply> | <destroy> | <build> | <rollback> ]
-    run_infra_automation.py [ -m <all> ]
-    run_infra_automation.py [ -m <packer> | <terraform> ]
-    run_infra_automation.py [ -m <packer> ] [ -a <build> | <rollback> ]
-    run_infra_automation.py [ -m <terraform> ] [ -a <plan> | <apply> | \
+    inframate.py [ -m <all> ]
+    inframate.py [ -m <packer> | <terraform> ]
+    inframate.py [ -m <packer> ] [ -a <build> | <rollback> ]
+    inframate.py [ -m <terraform> ] [ -a <plan> | <apply> | \
 <destroy> ]
 
 CLI to control Infrastructure Automation.
@@ -30,6 +31,9 @@ Options:
     -y    Auto-assume 'Yes' on approval
 """
 
+__author__ = "sergey kharnam"
+__version__ = "0.0.1"
+
 # -------------------
 # Imports
 
@@ -45,15 +49,11 @@ from inframate_data import Packer as pckr
 from inframate_data import Terraform as terra
 
 
-__author__ = "sergey kharnam"
-__version__ = "0.0.1"
-
-
 # Setup logging
 log = logging.getLogger('InfraAutomation')
 log.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
-fh = logging.FileHandler('/tmp/logs/infra_automation.log')
+fh = logging.FileHandler('/tmp/logs/inframate.log')
 fh.setLevel(logging.DEBUG)
 # create console handler with a higher log level
 ch = logging.StreamHandler()
@@ -107,7 +107,8 @@ def run_command(*command):
 
 
 def packer_validate():
-    """Function to validate Packer templates.
+    """
+    Function to validate Packer templates.
     """
     log.info("Starting Packer template validation...")
     cmd = list([pckr.packer_base_cmd, 'validate'])
@@ -116,7 +117,8 @@ def packer_validate():
 
 
 def packer_inspect():
-    """ Function to inspect Packer template.
+    """
+    Function to inspect Packer template.
     """
     log.info('Starting Packer template inspection...')
     cmd = list([pckr.packer_base_cmd, 'inspect'])
@@ -125,7 +127,8 @@ def packer_inspect():
 
 
 def packer_build():
-    """ Function to execute 'packer build'
+    """
+    Function to execute 'packer build'
     """
     log.info('Starting Packer image build process...')
     cmd = list([pckr.packer_base_cmd_verbose if arg['--verbose']
@@ -139,29 +142,56 @@ def packer_build():
 
 # TODO: implement packer_destroy()
 def packer_destroy():
-    """Function to destroy Packer applied plan.
+    """
+    Function to destroy Packer applied plan.
     """
     pass
+
+
+def packer_handler(action):
+    """
+    Function to control Packer flows
+    :param action: action to perform
+    :return:
+    """
+    packer_validate()
+    log.info('------------------------------------')
+    packer_inspect()
+    log.info('------------------------------------')
+    packer_build()
 
 
 # ---------------------
 # Terraform
 
 
-def terraform_init():
+def terraform_init(trfrm):
     pass
 
 
-def terraform_plan():
+def terraform_plan(trfrm):
     pass
 
 
-def terraform_apply():
+def terraform_apply(trfrm):
     pass
 
 
-def terraform_destroy():
+def terraform_destroy(trfrm):
     pass
+
+
+def terraform_handler(action):
+    """
+    Function to control Terraform flows
+    :param action: action to perform
+    :return:
+    """
+    trfrm = Terraform(working_dir=terra.terraform_base_dir)
+    terraform_init(trfrm)
+    terraform_plan(trfrm)
+    terraform_apply(trfrm)
+    terraform_destroy(trfrm)
 
 
 # ---------------------
@@ -169,13 +199,12 @@ def terraform_destroy():
 
 
 def main(arg):
-    """ Main function
     """
-    packer_validate()
-    log.info('------------------------------------')
-    packer_inspect()
-    log.info('------------------------------------')
-    packer_build()
+    Main function
+    :param arg: user input arguments
+    :return:
+    """
+    packer_handler(action=None)
     print(arg)
 
 
