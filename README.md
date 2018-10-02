@@ -81,6 +81,11 @@ roles, modules and playbooks in mind..._
 
 ---
 #### Roadmap
+**Functional**
 - Implement flows for AWS provider
 - Dockerize Inframate
 - Build CI/CD pipes with GCP and Jenkins X
+
+**Project**
+- Add unit-tests
+- Add tox
