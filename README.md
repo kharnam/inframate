@@ -1,5 +1,7 @@
 # Inframate
 
+[![Build Status](https://travis-ci.org/kharnam/inframate.svg?branch=master)](https://travis-ci.org/kharnam/inframate)
+
 #### Description:
 This is a demo project orchestrating resources over IaaS platforms GCP and AWS.
 
