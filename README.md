@@ -12,14 +12,16 @@ This is a demo project orchestrating resources over IaaS platforms GCP and AWS.
     * RAM 0.5GB
     * Disk 10GB
 - Employs Ansible for template image creation provisioning: 
-    * Install and configure NGINX
-    * Install and configure NTP
-    * Install and configure ...
+    * Installs and configure NGINX
+    * Installs and configure NTP
+    * Installs and configure ...
 - Employs Terraform for infrastructure 
-    * Create Google Compute Instance Template based on above generated image
-    * Create Google Compute Target Pool
-    * Create Google Compute Instance Group Manager
-    * Create Google Compute Autoscaler and attach it to above Group Manager
+    * Creates VPC and subnet
+    * Creates bunch of firewall rules for internal and external communication
+    * Creates Instance Template based on above generated image
+    * Creates Target Pool
+    * Creates Instance Group Manager
+    * Creates Autoscaler and attach it to above Group Manager
 
 ---
 #### Present functionality
