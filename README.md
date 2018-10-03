@@ -87,6 +87,7 @@ roles, modules and playbooks in mind..._
 - Implement flows for AWS provider
 - Dockerize Inframate
 - Build CI/CD pipes with GCP and Jenkins X
+- Migrate to micro-service design: API server, CLI client, web client
 
 **Project**
 - Add unit-tests
