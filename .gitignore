@@ -11,6 +11,6 @@
 *.vscode
 
 # Python
-*.idea
+.idea
 __pycache__
 .env
