@@ -214,9 +214,9 @@ function retry {
 # ------------------------------------------------------------------------------------
 # Packer section
 
-PACKER_BASE_DIR="${HOME}/dev/projects/inframate/packer"
+PACKER_BASE_DIR="${HOME}/dev/projects/inframate/modules/packer"
 PACKER_TMPLT_FILE="/templates/pckr_tmpl_gcp_centos_nginx.json"
-TERRAFORM_BASE_DIR="${HOME}/dev/projects/inframate/terraform/gcp_tf_test_deploy"
+TERRAFORM_BASE_DIR="${HOME}/dev/projects/inframate/modules/terraform/gcp_tf_test_deploy"
 GCP_CRED_FILE="${HOME}/.gcp/adept-cascade-216916-a0765ecc09b2.json"
 PROJECT_ID="adept-cascade-216916"
 IMAGE_NAME="sergey-test-$(date +%Y%m%d%H%M)"
