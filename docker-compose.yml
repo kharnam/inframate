@@ -1,0 +1,20 @@
+vendors:
+  image: python:alpine3.7
+  working_dir: /menv
+  volumes:
+    - .:/env
+  environment:
+    PYTHONUSERBASE: /env/vendor
+  command: pip install -r requirements.txt --user --upgrade
+
+inframate:
+  image: python:3
+  working_dir: /mnt
+  volumes:
+    - .:/mnt
+  ports:
+    - '5000:5000'
+  environment:
+    PYTHONPATH: src
+    PYTHONUSERBASE: /mnt/vendor
+  command: python src/server.py

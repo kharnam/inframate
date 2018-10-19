@@ -312,7 +312,7 @@ function terraform_apply() {
     RC=0
     info "Starting Terraform application..."
     cd $TERRAFORM_BASE_DIR
-    terraform apply -input=false -auto-approve -var "image_name=$IMAGE_NAME" -auto-approve \
+    terraform apply -input=false -var "image_name=$IMAGE_NAME" -auto-approve \
     | tee -a ${LOG_FILE} 2>&1 > /dev/null || RC=1
     if [[ "$RC" -eq 1 ]]; then
         critical "Terraform failed to apply the plan!" 

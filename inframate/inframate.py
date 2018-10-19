@@ -31,22 +31,19 @@ Options:
     -y    Auto-assume 'Yes' on approval
 """
 
+from docopt import docopt
+
+import shlex
+from python_terraform import *
+import inframate_data as id
+from inframate_data import Packer as pckr
+from inframate_data import Terraform as terra
+
+
 __author__ = "sergey kharnam"
 __version__ = "0.0.1"
 
-# -------------------
-# Imports
 
-import logging
-import re
-import subprocess
-import sys
-
-from docopt import docopt
-from python_terraform import *
-
-from inframate_data import Packer as pckr
-from inframate_data import Terraform as terra
 
 
 # Setup logging
@@ -71,11 +68,12 @@ log.addHandler(fh)
 # System generics
 
 
-def execute(*command):
+def execute(*command, cwd=None):
     next_input = None
+    print(cwd)
     for cmd in command:
-        p = subprocess.Popen(cmd, stdin=next_input, stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE, universal_newlines=True)
+        p = subprocess.Popen(cmd, cwd, stdin=next_input, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)  # , universal_newlines=True)
         next_input = p.stdout
         for stdout_line in iter(p.stdout.readline, ""):
             yield stdout_line
@@ -85,7 +83,7 @@ def execute(*command):
             raise subprocess.CalledProcessError(return_code, cmd)
 
 
-def run_command(*command):
+def run_command(*command, cwd=None):
     """
     Function to execute arbitrary series of shell commands.
     Support pipe in format: (['cmd1','args'],['cmd2', 'args'],..)
@@ -97,10 +95,14 @@ def run_command(*command):
     for cmd in command:
         log.debug('executing command    < {0} >'.format(cmd))
         ignored = ['\n']
-        for line in execute(cmd):
+        for line in execute(cmd, cwd):
             if line and line not in ignored:
                 log.info(line)
 
+
+# TODO: implement rollback()
+def rollback():
+    pass
 
 # ---------------------
 # Packer
@@ -161,31 +163,41 @@ def packer_handler(action):
     packer_validate()
     log.info('------------------------------------')
     packer_inspect()
-    log.info('------------------------------------')
-    packer_build()
+    # log.info('------------------------------------')
+    # packer_build()
 
 
 # ---------------------
 # Terraform
 
 # TODO: terraform_init
-def terraform_init(trfrm):
-    return_code, stdout, stderr = trfrm.init()
+def terraform_init(trfrm, *arguments, **options):
+    cmd = 'ls -l'.format(id.image_name)
+    run_command(shlex.split(cmd), cwd=terra.terraform_base_dir)
+    # cmd = 'terraform init -input=false -var "image_name={}"'.format(id.image_name)
+    # run_command(shlex.split(cmd), cwd=terra.terraform_base_dir)
+    # p = subprocess.Popen(shlex.split(cmd), cwd=terra.terraform_base_dir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    # print(p.stdout.readlines())
+    # return_code, stdout, stderr = trfrm.init(*arguments, **options)
+    # print(stdout)
 
 
 # TODO: terraform_plan
-def terraform_plan(trfrm):
-    pass
+def terraform_plan(trfrm, *arguments, **options):
+    return_code, stdout, stderr = trfrm.plan(*arguments, **options)
+    print(stdout)
 
 
 # TODO: terraform_apply
-def terraform_apply(trfrm):
-    pass
+def terraform_apply(trfrm, *arguments, **options):
+    return_code, stdout, stderr = trfrm.apply(*arguments, **options)
+    print(stdout)
 
 
 # TODO: terraform_destroy
-def terraform_destroy(trfrm):
-    pass
+def terraform_destroy(trfrm, *arguments, **options):
+    return_code, stdout, stderr = trfrm.destroy(*arguments, **options)
+    print(stdout)
 
 
 def terraform_handler(action):
@@ -195,10 +207,10 @@ def terraform_handler(action):
     :return:
     """
     trfrm = Terraform(working_dir=terra.terraform_base_dir)
-    terraform_init(trfrm)
-    # terraform_plan(trfrm)
-    # terraform_apply(trfrm)
-    # terraform_destroy(trfrm)
+    terraform_init(trfrm, input=False, var={'image_name': id.image_name})
+    # terraform_plan(trfrm, input=False, var={'image_name': id.image_name})
+    # terraform_apply(trfrm, input=False, var={'image_name': id.image_name}, auto_approve=IsFlagged)
+    # terraform_destroy(trfrm, auto_approve=IsFlagged)
 
 
 # ---------------------
@@ -213,7 +225,6 @@ def main(arg):
     """
     # packer_handler(action=None)
     terraform_handler(action=None)
-    print(arg)
 
 
 # Execution

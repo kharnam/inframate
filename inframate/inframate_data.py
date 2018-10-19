@@ -6,6 +6,7 @@ import re
 import shlex
 
 home = os.environ['HOME']
+image_name = 'sergey-test-{}'.format(datetime.datetime.now().strftime('%Y%m%d%H%M'))
 
 
 class Packer(object):
@@ -20,7 +21,7 @@ class Packer(object):
     gcp_data = {
         'gcp_cred_file': "{}/.gcp/adept-cascade-216916-a0765ecc09b2.json".format(home),
         'project_id': "adept-cascade-216916",
-        'image_name': "sergey-test-{}".format(datetime.datetime.now().strftime('%Y%m%d%H%M')),
+        'image_name': image_name,
         'region': "us-east1",
         'zone': "us-east1-b",
         'machine_type': "f1-micro",
