@@ -31,38 +31,33 @@ Options:
     -y    Auto-assume 'Yes' on approval
 """
 
+__author__ = "sergey kharnam"
+__version__ = "0.0.1"
+
+import sys
+import os
+fw_env = os.getenv('FW', '/Users/kharnam/dev/projects')
+sys.path.append(fw_env + '/devopsipy/devopsipy')
+
+# stdlib
+import shlex
+
+# PyPi
+from python_terraform import *
 from docopt import docopt
 
-import shlex
-from python_terraform import *
+# Inframate
 import inframate_data as id
 from inframate_data import Packer as pckr
 from inframate_data import Terraform as terra
 
+# DevOpsiPy
+import logger
+import host_base
+import pstate
+import exceptions as pe
+import host_base_const as hbc
 
-__author__ = "sergey kharnam"
-__version__ = "0.0.1"
-
-
-
-
-# Setup logging
-log = logging.getLogger('InfraAutomation')
-log.setLevel(logging.DEBUG)
-# create file handler which logs even debug messages
-fh = logging.FileHandler('/tmp/logs/inframate.log')
-fh.setLevel(logging.DEBUG)
-# create console handler with a higher log level
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-# create formatter and add it to the handlers
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-fh.setFormatter(formatter)
-# add the handlers to logger
-log.addHandler(ch)
-log.addHandler(fh)
 
 # -------------------
 # System generics
@@ -171,51 +166,56 @@ def packer_handler(action):
 # Terraform
 
 # TODO: terraform_init
-def terraform_init(trfrm, *arguments, **options):
-    cmd = 'ls -l'.format(id.image_name)
-    run_command(shlex.split(cmd), cwd=terra.terraform_base_dir)
-    # cmd = 'terraform init -input=false -var "image_name={}"'.format(id.image_name)
-    # run_command(shlex.split(cmd), cwd=terra.terraform_base_dir)
-    # p = subprocess.Popen(shlex.split(cmd), cwd=terra.terraform_base_dir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    # print(p.stdout.readlines())
-    # return_code, stdout, stderr = trfrm.init(*arguments, **options)
-    # print(stdout)
+def terraform_init(host):
+    log.info('Run Terraform initialization...')
+    log.debug('initializing for dir -- < {} >'.format(terra.terraform_base_dir_gcp))
+    cmd = terra.cmd_terraform_init + ' {}'.format(terra.terraform_base_dir_gcp)
+    log.debug('init cmd to exec -- < {} >'.format(cmd))
+    p = host.run(commands=[cmd], print_stdout=True)
 
 
 # TODO: terraform_plan
-def terraform_plan(trfrm, *arguments, **options):
-    return_code, stdout, stderr = trfrm.plan(*arguments, **options)
-    print(stdout)
+def terraform_plan(host, plan_file='.terraform/terraform.tfplan'):
+    log.info('Run Terraform planning...')
+    log.debug('save output to file -- < {} >'.format(plan_file))
+    cmd = '{0} -out {2}/{1} {2}'.format(terra.cmd_terraform_plan, plan_file, terra.terraform_base_dir_gcp)
+    log.debug('init cmd to exec -- < {} >'.format(cmd))
+    p = host.run(commands=[cmd], print_stdout=True)
 
 
 # TODO: terraform_apply
-def terraform_apply(trfrm, *arguments, **options):
-    return_code, stdout, stderr = trfrm.apply(*arguments, **options)
-    print(stdout)
+def terraform_apply(host, plan_file='.terraform/terraform.tfplan'):
+    log.info('Run Terraform plan application...')
+    cmd = terra.cmd_terraform_apply + ' {}/{}'.format(terra.terraform_base_dir_gcp, plan_file)
+    log.debug('init cmd to exec -- < {} >'.format(cmd))
+    p = host.run(commands=[cmd], print_stdout=True)
 
 
 # TODO: terraform_destroy
-def terraform_destroy(trfrm, *arguments, **options):
-    return_code, stdout, stderr = trfrm.destroy(*arguments, **options)
-    print(stdout)
+def terraform_destroy(host, auto_approve=True):
+    log.info('Run Terraform latest plan destruction...')
+    if auto_approve:
+        cmd = terra.cmd_terraform_destroy + ' -auto-approve' + ' {}'.format(terra.terraform_base_dir_gcp)
+    else:
+        cmd = terra.cmd_terraform_destroy + ' {}'.format(terra.terraform_base_dir_gcp)
+    log.debug('init cmd to exec -- < {} >'.format(cmd))
+    p = host.run(commands=[cmd], print_stdout=True)
 
 
-def terraform_handler(action):
+def terraform_handler(host, action):
     """
     Function to control Terraform flows
     :param action: action to perform
     :return:
     """
-    trfrm = Terraform(working_dir=terra.terraform_base_dir)
-    terraform_init(trfrm, input=False, var={'image_name': id.image_name})
-    # terraform_plan(trfrm, input=False, var={'image_name': id.image_name})
-    # terraform_apply(trfrm, input=False, var={'image_name': id.image_name}, auto_approve=IsFlagged)
-    # terraform_destroy(trfrm, auto_approve=IsFlagged)
+    terraform_init(host)
+    terraform_plan(host)
+    terraform_apply(host)
+    # terraform_destroy(host)
 
 
 # ---------------------
 # Main
-
 
 def main(arg):
     """
@@ -223,8 +223,11 @@ def main(arg):
     :param arg: user input arguments
     :return:
     """
+
+    log = logger.set_logger('Inframate')
+    host = host_base.HostBase('localhost')
     # packer_handler(action=None)
-    terraform_handler(action=None)
+    terraform_handler(host=host, action=None)
 
 
 # Execution

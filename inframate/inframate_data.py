@@ -10,7 +10,8 @@ image_name = 'sergey-test-{}'.format(datetime.datetime.now().strftime('%Y%m%d%H%
 
 
 class Packer(object):
-    """Class to contain Packer related dependencies
+    """
+    Class to contain Packer related dependencies
     """
 
     # dirs and files
@@ -43,7 +44,19 @@ class Packer(object):
 
 
 class Terraform(object):
-    """Class to contain Terraform related dependencies
+    """
+    Class to contain Terraform related dependencies
     """
 
-    terraform_base_dir = '{}/dev/projects/inframate/terraform/gcp_tf_test_deploy'.format(home)
+    # paths
+    terraform_base_dir = '{}/dev/projects/inframate/modules/terraform'.format(home)
+    terraform_base_dir_gcp = '{}/gcp_tf_test_deploy'.\
+        format(terraform_base_dir)
+    terraform_base_dir_aws = '{}/aws_tf_test_deploy'.\
+        format(terraform_base_dir)
+
+    # cmds and args
+    cmd_terraform_init = 'terraform init'
+    cmd_terraform_plan = 'terraform plan'
+    cmd_terraform_apply = 'terraform apply'
+    cmd_terraform_destroy = 'terraform destroy'
