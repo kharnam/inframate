@@ -103,63 +103,61 @@ def rollback():
 # Packer
 
 
-def packer_validate():
+def packer_validate(host):
     """
     Function to validate Packer templates.
     """
     log.info("Starting Packer template validation...")
-    cmd = list([pckr.packer_base_cmd, 'validate'])
-    cmd.extend(pckr.packer_cmd_args)
-    run_command(cmd)
+    cmd = pckr.packer_cmd_base + ' validate ' + pckr.packer_cmd_args
+    log.info('cmd: < {} >'.format(cmd))
+    host.run(cmd, print_stdout=True)
 
 
-def packer_inspect():
+def packer_inspect(host):
     """
     Function to inspect Packer template.
     """
     log.info('Starting Packer template inspection...')
-    cmd = list([pckr.packer_base_cmd, 'inspect'])
-    cmd.append(pckr.packer_cmd_args[-1])
-    run_command(cmd)
+    cmd = pckr.packer_cmd_base + ' inspect ' + pckr.packer_tmplt_file
+    log.info('cmd: < {} >'.format(cmd))
+    host.run(cmd, print_stdout=True)
 
 
-def packer_build():
+def packer_build(host):
     """
     Function to execute 'packer build'
     """
     log.info('Starting Packer image build process...')
-    cmd = list([pckr.packer_base_cmd_verbose if arg['--verbose']
-                else pckr.packer_base_cmd, 'build'])
-    cmd.extend(pckr.packer_cmd_args)
-    try:
-        run_command(cmd)
-    except subprocess.CalledProcessError as e:
-        pass
+    cmd = pckr.packer_cmd_base + ' build -debug ' if arg['--verbose'] else pckr.packer_cmd_base + ' build '
+    cmd += pckr.packer_cmd_args
+    log.info('cmd: < {} >'.format(cmd))
+    host.run(cmd, print_stdout=True)
 
 
-def get_packer_images():
+# TODO: implement get_packer_images()
+def get_packer_images(host):
     cmd = "gcloud compute images list --filter='sergey' --format=json"
 
 
 # TODO: implement packer_destroy()
-def packer_destroy():
+def packer_destroy(host):
     """
     Function to destroy Packer applied plan.
     """
     pass
 
 
-def packer_handler(action):
+def packer_handler(host, action):
     """
     Function to control Packer flows
     :param action: action to perform
     :return:
     """
-    packer_validate()
+    packer_validate(host)
     log.info('------------------------------------')
-    packer_inspect()
-    # log.info('------------------------------------')
-    # packer_build()
+    packer_inspect(host)
+    log.info('------------------------------------')
+    packer_build(host)
 
 
 # ---------------------
@@ -226,8 +224,8 @@ def main(arg):
 
     log = logger.set_logger('Inframate')
     host = host_base.HostBase('localhost')
-    # packer_handler(action=None)
-    terraform_handler(host=host, action=None)
+    packer_handler(host=host, action=None)
+    # terraform_handler(host=host, action=None)
 
 
 # Execution

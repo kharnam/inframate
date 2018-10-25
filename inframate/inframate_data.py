@@ -15,7 +15,7 @@ class Packer(object):
     """
 
     # dirs and files
-    packer_base_dir = "{}/dev/projects/inframate/packer".format(home)
+    packer_base_dir = "{}/dev/projects/inframate/modules/packer".format(home)
     packer_tmplt_file = "{}/templates/pckr_tmpl_gcp_centos_nginx.json".format(packer_base_dir)
 
     # gcp data
@@ -26,21 +26,20 @@ class Packer(object):
         'region': "us-east1",
         'zone': "us-east1-b",
         'machine_type': "f1-micro",
-        'source_image': "centos-7-v20180911",
+        'source_image': "centos-7-v20181011",
         'packer_tmplt_file': "{}/templates/pckr_tmpl_gcp_centos_nginx.json".format(packer_base_dir)
     }
 
     # cmds and args
-    packer_base_cmd = '{}/packer'.format(packer_base_dir)
-    packer_base_cmd_verbose = shlex.split(packer_base_cmd + '" "-debug')
-    packer_cmd_args = shlex.split(re.sub(' +', ' ', '\
+    packer_cmd_base = '{}/packer'.format(packer_base_dir)
+    packer_cmd_args = re.sub(' +', ' ', '\
         -var region={region} \
         -var source_image={source_image} \
         -var image_name={image_name} \
         -var machine_type={machine_type} \
         -var zone={zone} \
         -var service_account_json={gcp_cred_file} \
-        -var project_id={project_id} {packer_tmplt_file}'.format(**gcp_data)))
+        -var project_id={project_id} {packer_tmplt_file}'.format(**gcp_data))
 
 
 class Terraform(object):
