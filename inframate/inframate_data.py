@@ -1,4 +1,5 @@
-"""This file contains supporting variables for 'inframate.py'
+"""
+This file contains supporting variables for 'inframate_api.py'
 """
 import datetime
 import os

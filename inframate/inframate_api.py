@@ -1,36 +1,5 @@
 #!/usr/bin/env python3
 
-"""
-Usage:
-    inframate.py [-h] [-y] [-v | -q ] [-m <all> | <packer> | \
-<terraform> ] [ -a <plan> | <apply> | <destroy> | <build> | <rollback> ]
-    inframate.py [ -m <all> ]
-    inframate.py [ -m <packer> | <terraform> ]
-    inframate.py [ -m <packer> ] [ -a <build> | <rollback> ]
-    inframate.py [ -m <terraform> ] [ -a <plan> | <apply> | \
-<destroy> ]
-
-CLI to control Infrastructure Automation.
-
-Arguments:
-    all         All modules
-    packer      Packer module
-    terraform   Terraform
-    plan        Execute 'terraform plan'
-    apply       Execute 'terraform apply'
-    destroy     Execute 'terraform destroy'
-    build       Execute 'packer build'
-    rollback    Execute 'packer rollback'
-
-Options:
-    -h --help
-    -v --verbose  verbose mode
-    -q --quiet    quiet mode
-    -m    Module to call
-    -a    Action to execute by module
-    -y    Auto-assume 'Yes' on approval
-"""
-
 __author__ = "sergey kharnam"
 __version__ = "0.0.1"
 
@@ -147,19 +116,6 @@ def packer_destroy(host):
     pass
 
 
-def packer_handler(host, action):
-    """
-    Function to control Packer flows
-    :param action: action to perform
-    :return:
-    """
-    packer_validate(host)
-    log.info('------------------------------------')
-    packer_inspect(host)
-    log.info('------------------------------------')
-    packer_build(host)
-
-
 # ---------------------
 # Terraform
 
@@ -198,37 +154,3 @@ def terraform_destroy(host, auto_approve=True):
         cmd = terra.cmd_terraform_destroy + ' {}'.format(terra.terraform_base_dir_gcp)
     log.debug('init cmd to exec -- < {} >'.format(cmd))
     p = host.run(commands=[cmd], print_stdout=True)
-
-
-def terraform_handler(host, action):
-    """
-    Function to control Terraform flows
-    :param action: action to perform
-    :return:
-    """
-    terraform_init(host)
-    terraform_plan(host)
-    terraform_apply(host)
-    # terraform_destroy(host)
-
-
-# ---------------------
-# Main
-
-def main(arg):
-    """
-    Main function
-    :param arg: user input arguments
-    :return:
-    """
-
-    log = logger.set_logger('Inframate')
-    host = host_base.HostBase('localhost')
-    packer_handler(host=host, action=None)
-    # terraform_handler(host=host, action=None)
-
-
-# Execution
-if __name__ == '__main__':
-    arg = docopt(__doc__)
-    main(arg)
