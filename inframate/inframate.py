@@ -3,9 +3,9 @@
 """
 Usage:
     inframate.py -h | --help
-    inframate.py scenario <name>
-    inframate.py packer (validate | inspect | build | rollback)
-    inframate.py terraform (init | plan | apply | destroy) [-y | --yes]
+    inframate.py scenario <name> <input_file>
+    inframate.py packer (validate | inspect | build | rollback) <input_file>
+    inframate.py terraform (init | plan | apply | destroy) [-y | --yes] <input_file>
 
 CLI to control Inframate (Infrastructure Automation Tool).
 
@@ -34,9 +34,9 @@ __version__ = "0.1.0"
 
 """
 Inframate scenarios runner architecture:
-  - run-inframate -- module to implement only high-level scenarios (procedural level)
-  - inframate_api -- module to provide building blocks for inframate runner/s (functional level)
-  - devopsipy     -- package to implement low-level framework (core level)
+  - inframate       -- runner module to implement only high-level scenarios (procedural level)
+  - inframate_api   -- module to provide building blocks for inframate runner/s (functional level)
+  - devopsipy       -- package to implement low-level framework (core level)
 """
 
 
@@ -53,10 +53,8 @@ from python_terraform import *
 from docopt import docopt
 
 # Inframate
-import inframate_data as id
-from inframate_data import Packer as pckr
-from inframate_data import Terraform as terra
-import inframate_api as ia
+import data_provider
+import api
 
 # DevOpsiPy
 import logger
@@ -66,41 +64,50 @@ import exceptions as pe
 import host_base_const as hbc
 
 
+# --------
+# Handlers
 
-def packer_handler(host):
+def packer_handler(host, data_prov):
     """
     Function to control Packer flows
     :param host: host to run from
     :return:
     """
     if arg['validate']:
-        ia.packer_validate(host)
+        api.packer_validate(host, data_prov)
     if arg['inspect']:
-        ia.packer_inspect(host)
+        api.packer_inspect(host, data_prov)
     if arg['build']:
-        ia.packer_build(host)
+        api.packer_build(host, data_prov)
 
 
-def terraform_handler(host):
+def terraform_handler(host, data_prov):
     """
     Function to control Terraform flows
     :param host: host to run from
     :return:
     """
     if arg['init']:
-        ia.terraform_init(host)
+        api.terraform_init(host, data_prov)
     if arg['plan']:
-        ia.terraform_plan(host)
+        api.terraform_plan(host, data_prov)
     if arg['apply']:
         if arg['--yes']:
-            ia.terraform_apply(host, auto_approve=True)
+            api.terraform_apply(host, data_prov, auto_approve=True)
         else:
-            ia.terraform_apply(host)
+            api.terraform_apply(host, data_prov)
     if arg['destroy']:
         if arg['--yes']:
-            ia.terraform_destroy(host, auto_approve=True)
+            api.terraform_destroy(host, data_prov, auto_approve=True)
         else:
-            ia.terraform_destroy(host)
+            api.terraform_destroy(host, data_prov)
+
+
+# ---------------------
+# Scenarios
+
+def scenario_full():
+    pass
 
 
 # ---------------------
@@ -113,16 +120,19 @@ def main(arg):
     :return:
     """
     host = host_base.HostBase('localhost')
+    log.debug('HostBase:\n{}'.format(host.__repr__()))
+    dp = data_provider.DataProvider(arg['<input_file>'])
+    log.debug('DataProvider:\n{}'.format(dp.__repr__()))
 
     if arg['scenario']:
         log.debug('execute scenario < {} >'.format('scenario_{}'.format(arg['<name>'])))
         eval('scenario_{}'.format(arg['<name>']))
     if arg['packer']:
         log.debug('call Packer handler...')
-        packer_handler(host=host)
+        packer_handler(host, data_prov=dp)
     if arg['terraform']:
         log.debug('call Terraform handler...')
-        terraform_handler(host=host)
+        terraform_handler(host, data_prov=dp)
 
 
 # Execution

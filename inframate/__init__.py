@@ -4,6 +4,7 @@
 __author__ = 'sergey kharnam'
 
 # Imports
-import inframate_data
+import data_provider
+import api
 
-__all__ = [inframate_data]
+__all__ = [data_provider, api]
