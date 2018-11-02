@@ -1,0 +1,20 @@
+general:
+  image_name_prefix: 'sergey-test'
+
+gcp_data:
+  gcp_cred_file: '/Users/kharnam/.gcp/adept-cascade-216916-a0765ecc09b2.json'
+  project_id: 'adept-cascade-216916'
+  region: 'us-east1'
+  zone: 'us-east1-b'
+  machine_type: 'f1-micro'
+  source_image: 'centos-7-v20181011'
+
+packer:
+  packer_base_dir: '/Users/kharnam/dev/projects/inframate/modules/packer'
+  packer_tmplt_file: '/Users/kharnam/dev/projects/inframate/modules/packer/templates/pckr_tmpl_gcp_centos_nginx.json'
+  packer_cmd_base: '/Users/kharnam/dev/projects/inframate/modules/packer/packer'
+
+terraform:
+  terraform_base_dir: '/Users/kharnam/dev/projects/inframate/modules/terraform'
+  terraform_base_dir_gcp: '/Users/kharnam/dev/projects/inframate/modules/terraform/gcp_tf_test_deploy'
+  terraform_base_dir_aws: '/Users/kharnam/dev/projects/inframate/modules/terraform/aws_tf_test_deploy'

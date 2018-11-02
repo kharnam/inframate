@@ -16,12 +16,10 @@ import os
 fw_env = os.getenv('FW', '/Users/kharnam/dev/projects')
 sys.path.append(fw_env + '/devopsipy/devopsipy')
 
-# PyPi
-from python_terraform import *
+import subprocess
 
 # Inframate
-from inframate_data import Packer as pckr
-from inframate_data import Terraform as terra
+import data_provider
 
 # DevOpsiPy
 import logger
@@ -75,47 +73,47 @@ def rollback():
 # Packer
 
 
-def packer_validate(host):
+def packer_validate(host, data_prov):
     """
     Function to validate Packer templates.
     """
     log.info('--------------------------------------')
     log.info("Run Packer template validation...")
-    cmd = pckr.packer_cmd_base + ' validate ' + pckr.packer_cmd_args
+    cmd = data_prov.packer_cmd_base + ' validate ' + data_prov.packer_cmd_args
     log.debug('cmd: < {} >'.format(cmd))
     host.run(cmd, print_stdout=True)
 
 
-def packer_inspect(host):
+def packer_inspect(host, data_prov):
     """
     Function to inspect Packer template.
     """
     log.info('--------------------------------------')
     log.info('Run Packer template inspection...')
-    cmd = pckr.packer_cmd_base + ' inspect ' + pckr.packer_tmplt_file
+    cmd = data_prov.packer_cmd_base + ' inspect ' + data_prov.packer_tmplt_file
     log.debug('cmd: < {} >'.format(cmd))
     host.run(cmd, print_stdout=True)
 
 
-def packer_build(host, verbose=False):
+def packer_build(host, data_prov, verbose=False):
     """
     Function to execute 'packer build'
     """
     log.info('--------------------------------------')
     log.info('Run Packer image build process...')
-    cmd = pckr.packer_cmd_base + ' build -debug ' if verbose else pckr.packer_cmd_base + ' build '
-    cmd += pckr.packer_cmd_args
+    cmd = data_prov.packer_cmd_base + ' build -debug ' if verbose else data_prov.packer_cmd_base + ' build '
+    cmd += data_prov.packer_cmd_args
     log.debug('cmd: < {} >'.format(cmd))
     host.run(cmd, print_stdout=True)
 
 
 # TODO: implement get_packer_images()
-def get_packer_images(host):
+def get_packer_images(host, data_prov):
     cmd = "gcloud compute images list --filter='sergey' --format=json"
 
 
 # TODO: implement packer_destroy()
-def packer_destroy(host):
+def packer_destroy(host, data_prov):
     """
     Function to destroy Packer applied plan.
     """
@@ -127,44 +125,44 @@ def packer_destroy(host):
 # Terraform
 
 # TODO: terraform_init
-def terraform_init(host):
+def terraform_init(host, data_prov):
     log.info('-------------------------------')
     log.info('Run Terraform initialization...')
-    log.debug('initializing for dir -- < {} >'.format(terra.terraform_base_dir_gcp))
-    cmd = terra.cmd_terraform_init + ' {}'.format(terra.terraform_base_dir_gcp)
+    log.debug('initializing for dir -- < {} >'.format(data_prov.terraform_base_dir_gcp))
+    cmd = data_prov.terraform_cmd_init + ' {}'.format(data_prov.terraform_base_dir_gcp)
     log.debug('init cmd to exec -- < {} >'.format(cmd))
     p = host.run(commands=[cmd], print_stdout=True)
 
 
 # TODO: terraform_plan
-def terraform_plan(host, plan_file='.terraform/terraform.tfplan'):
+def terraform_plan(host, data_prov, plan_file='.terraform/terraform.tfplan'):
     log.info('-------------------------')
     log.info('Run Terraform planning...')
     log.debug('save output to file -- < {} >'.format(plan_file))
-    cmd = '{0} -out {2}/{1} {2}'.format(terra.cmd_terraform_plan, plan_file, terra.terraform_base_dir_gcp)
+    cmd = '{0} -out {2}/{1} {2}'.format(data_prov.terraform_cmd_plan, plan_file, data_prov.terraform_base_dir_gcp)
     log.debug('plan cmd to exec -- < {} >'.format(cmd))
     p = host.run(commands=[cmd], print_stdout=True)
 
 
 # TODO: terraform_apply
-def terraform_apply(host, auto_approve=False, plan_file='.terraform/terraform.tfplan'):
+def terraform_apply(host, data_prov, auto_approve=False, plan_file='.terraform/terraform.tfplan'):
     log.info('---------------------------------')
     log.info('Run Terraform plan application...')
     if auto_approve:
-        cmd = terra.cmd_terraform_apply + ' -auto-approve' + ' {}/{}'.format(terra.terraform_base_dir_gcp, plan_file)
+        cmd = data_prov.terraform_cmd_apply + ' -auto-approve' + ' {}/{}'.format(data_prov.terraform_base_dir_gcp, plan_file)
     else:
-        cmd = terra.cmd_terraform_apply + ' {}/{}'.format(terra.terraform_base_dir_gcp, plan_file)
+        cmd = data_prov.terraform_cmd_apply + ' {}/{}'.format(data_prov.terraform_base_dir_gcp, plan_file)
     log.debug('apply cmd to exec -- < {} >'.format(cmd))
     p = host.run(commands=[cmd], print_stdout=True)
 
 
 # TODO: terraform_destroy
-def terraform_destroy(host, auto_approve=False):
+def terraform_destroy(host, data_prov, auto_approve=False):
     log.info('----------------------------------------')
     log.info('Run Terraform latest plan destruction...')
     if auto_approve:
-        cmd = terra.cmd_terraform_destroy + ' -auto-approve' + ' {}'.format(terra.terraform_base_dir_gcp)
+        cmd = data_prov.terraform_cmd_destroy + ' -auto-approve' + ' {}'.format(data_prov.terraform_base_dir_gcp)
     else:
-        cmd = terra.cmd_terraform_destroy + ' {}'.format(terra.terraform_base_dir_gcp)
+        cmd = data_prov.terraform_cmd_destroy + ' {}'.format(data_prov.terraform_base_dir_gcp)
     log.debug('destroy cmd to exec -- < {} >'.format(cmd))
     p = host.run(commands=[cmd], print_stdout=True)
